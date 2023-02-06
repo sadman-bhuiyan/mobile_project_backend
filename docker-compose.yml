@@ -1,0 +1,67 @@
+version: "3"
+services:
+
+ 
+
+  # portainer:
+  #   image: portainer/portainer
+  #   command: -H unix:///var/run/docker.sock
+  #   restart: always
+  #   ports:
+  #     - 9000:9000
+  #     - 8000:8000
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - portainer_data:/data
+
+  db:
+    image: "postgres:alpine"
+    command: postgres -c 'max_connections=200'
+    restart: always
+    environment:
+      POSTGRES_DB: messages
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: mobilePr0j3ct!
+      PGDATA: /var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  pgadmin:
+     image: dpage/pgadmin4
+     restart: always
+     environment:
+       PGADMIN_DEFAULT_EMAIL: sbhuiyan@unibz.it
+       PGADMIN_DEFAULT_PASSWORD: admin1234
+       PGADMIN_LISTEN_PORT: 80
+     ports:
+       - "80:80"
+     volumes:
+       - pgadmin-data:/var/lib/pgadmin
+
+  app:
+    image: node:alpine
+    working_dir: /home/node/app
+    restart: always
+    environment:
+        NODE_ENV: production
+        POSTGRES_USERNAME: admin
+        POSTGRES_PASSWORD: mobilePr0j3ct!
+        DB_NAME: messages      
+        HOST_NAME: db
+        MODE: local
+    command: "npm start"
+    volumes:
+      - ./src:/home/node/app    
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+
+        
+  
+volumes:
+  db-data:
+  pgadmin-data:
